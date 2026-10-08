@@ -21,7 +21,7 @@ python "$SKILL_DIR/scripts/inventory_docs.py" "$REPOSITORY_ROOT" --format json
 python "$SKILL_DIR/scripts/check_doc_links.py" "$REPOSITORY_ROOT"
 ```
 
-The inventory lists Markdown paths only; it does not infer categories. The link checker validates supported Markdown inline and reference links, local files, and GitHub-style Markdown heading anchors. It does not fetch external URLs. It reports parser limitations (including raw HTML/JSX links) in its result; such syntax is not verified and must not be described as covered by a `PASS`.
+The inventory lists Markdown paths only; it does not infer categories. It skips symlinked directories, includes file symlinks only when their targets stay within the repository root, and exits with an error rather than returning a successful inventory if an external Markdown file symlink is found. The link checker validates supported Markdown inline and reference links, local files, and GitHub-style Markdown heading anchors. It does not fetch external URLs. It reports parser limitations (including raw HTML/JSX links) in its result; such syntax is not verified and must not be described as covered by a `PASS`.
 
 If either helper is missing or cannot be run from the installed Skill, report that check as `NOT RUN` and the related inventory or verification coverage as `NOT VERIFIED`. Do not claim a `PASS`; describe any other method and its limits separately.
 

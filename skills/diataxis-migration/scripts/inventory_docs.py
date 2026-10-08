@@ -35,8 +35,10 @@ MARKDOWN_SUFFIXES = {".md", ".markdown", ".mdown", ".mdx"}
 def inventory(root: Path) -> List[str]:
     """Return sorted repository-relative Markdown paths.
 
-    Symlinked directories are not traversed. The function reads directory
-    entries only and never opens or modifies document contents.
+    Symlinked directories are not traversed. Markdown file symlinks are
+    included only when their resolved paths stay within the repository root;
+    an external file symlink aborts the inventory. The function reads
+    directory entries only and never opens or modifies document contents.
     """
     root = root.resolve(strict=True)
     if not root.is_dir():
@@ -60,6 +62,23 @@ def inventory(root: Path) -> List[str]:
         for filename in filenames:
             path = current_path / filename
             if path.suffix.lower() in MARKDOWN_SUFFIXES:
+                if path.is_symlink():
+                    try:
+                        resolved = path.resolve(strict=False)
+                    except (OSError, RuntimeError) as error:
+                        raise RuntimeError(
+                            "Markdown symlink '{}' could not be safely resolved; inventory was not completed.".format(
+                                path.relative_to(root).as_posix()
+                            )
+                        ) from error
+                    try:
+                        resolved.relative_to(root)
+                    except ValueError as error:
+                        raise RuntimeError(
+                            "Markdown symlink '{}' resolves outside the repository root; inventory was not completed.".format(
+                                path.relative_to(root).as_posix()
+                            )
+                        ) from error
                 documents.append(path.relative_to(root).as_posix())
 
     return sorted(documents)

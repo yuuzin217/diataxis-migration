@@ -74,7 +74,7 @@ The project scripts use the Python standard library (Python 3.9 or newer):
     python skills/diataxis-migration/scripts/check_doc_links.py .
     python -m unittest discover -s tests -v
 
-The inventory output is deterministic and can be consumed as JSON. The link checker validates supported local inline and reference-style Markdown links, files, and GitHub-style heading anchors. External URLs are not fetched. Raw HTML/JSX links, explicit HTML anchors, multiline Markdown links, angle-bracket autolinks, and fragments on non-Markdown or directory targets are outside its verification scope; when encountered, it reports NOT VERIFIED and exits non-zero.
+The inventory output is deterministic and can be consumed as JSON. It skips symlinked directories and aborts with a diagnostic and exit code 2 if a Markdown file symlink resolves outside the repository, so an incomplete inventory is not presented as a successful result. The link checker validates supported local inline and reference-style Markdown links, files, and GitHub-style heading anchors. External URLs are not fetched. Raw HTML/JSX links, explicit HTML anchors, multiline Markdown links, angle-bracket autolinks, and fragments on non-Markdown or directory targets are outside its verification scope; when encountered, it reports NOT VERIFIED and exits non-zero.
 
 For frontmatter validation, use the official skills-ref validate command when it is available. It validates Skill metadata and naming, not behavior or compatibility across clients. See the [skills-ref project](https://github.com/agentskills/agentskills/tree/main/skills-ref).
 
