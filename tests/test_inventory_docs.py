@@ -1,11 +1,15 @@
 import contextlib
 import io
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.inventory_docs import inventory, main
+SKILL_SCRIPTS = Path(__file__).resolve().parents[1] / "skills" / "diataxis-migration" / "scripts"
+sys.path.insert(0, str(SKILL_SCRIPTS))
+
+from inventory_docs import inventory, main
 
 
 class InventoryDocsTests(unittest.TestCase):

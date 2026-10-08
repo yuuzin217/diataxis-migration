@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Bundle verification helpers with the Skill and document their installed paths and unavailable-helper fallback.
+- Detect undefined full and collapsed reference links, mark multiline inline links as not verified, and allow valid duplicate-heading anchors.
+
 ## 0.1.0
 
 - Add the client-neutral diataxis-migration Agent Skill with Standard and opt-in Deep Audit modes.

@@ -44,7 +44,7 @@ The repository does not provide a universal installer because supported agents d
     mkdir -p /path/to/your-agent/skills/
     cp -R diataxis-migration/skills/diataxis-migration /path/to/your-agent/skills/
 
-Replace /path/to/your-agent/skills/ with the location documented by your client. Keep the diataxis-migration directory name and its contents together. The Python scripts are repository tools and do not need to be installed with the Skill.
+Replace /path/to/your-agent/skills/ with the location documented by your client. Keep the diataxis-migration directory name and its contents together; the verification helper scripts are bundled inside it and will be copied with the Skill.
 
 ## Usage
 
@@ -60,11 +60,9 @@ To ask for assessment only, say not to edit files. Deep Audit Mode is not inferr
 
     skills/diataxis-migration/
       SKILL.md
+      scripts/          Packaged inventory and link-check helpers
       references/       Detailed workflow, classification, source, audit, safety, and verification guidance
       assets/           Inventory, migration, gap register, and final report templates
-    scripts/
-      inventory_docs.py
-      check_doc_links.py
     tests/              Synthetic, network-free unit tests
     evals/cases.md      Skill behavior evaluation scenarios
 
@@ -72,11 +70,11 @@ To ask for assessment only, say not to edit files. Deep Audit Mode is not inferr
 
 The project scripts use the Python standard library (Python 3.9 or newer):
 
-    python scripts/inventory_docs.py . --format json
-    python scripts/check_doc_links.py .
+    python skills/diataxis-migration/scripts/inventory_docs.py . --format json
+    python skills/diataxis-migration/scripts/check_doc_links.py .
     python -m unittest discover -s tests -v
 
-The inventory output is deterministic and can be consumed as JSON. The link checker validates supported local inline and reference-style Markdown links, files, and GitHub-style heading anchors. External URLs are not fetched. Raw HTML/JSX links, explicit HTML anchors, multiline Markdown destinations, angle-bracket autolinks, and fragments on non-Markdown or directory targets are outside its verification scope; when encountered, it reports NOT VERIFIED and exits non-zero.
+The inventory output is deterministic and can be consumed as JSON. The link checker validates supported local inline and reference-style Markdown links, files, and GitHub-style heading anchors. External URLs are not fetched. Raw HTML/JSX links, explicit HTML anchors, multiline Markdown links, angle-bracket autolinks, and fragments on non-Markdown or directory targets are outside its verification scope; when encountered, it reports NOT VERIFIED and exits non-zero.
 
 For frontmatter validation, use the official skills-ref validate command when it is available. It validates Skill metadata and naming, not behavior or compatibility across clients. See the [skills-ref project](https://github.com/agentskills/agentskills/tree/main/skills-ref).
 

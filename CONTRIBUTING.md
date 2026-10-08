@@ -15,8 +15,8 @@ Changes to the inventory or link checker should remain repository-agnostic, use 
 3. Run the checks relevant to the change:
 
        python -m unittest discover -s tests -v
-       python scripts/inventory_docs.py . --format json
-       python scripts/check_doc_links.py .
+       python skills/diataxis-migration/scripts/inventory_docs.py . --format json
+       python skills/diataxis-migration/scripts/check_doc_links.py .
        git diff --check
 
 4. Report commands that were not run and any verification limitations.

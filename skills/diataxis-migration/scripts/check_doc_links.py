@@ -248,14 +248,40 @@ def _destination_from_parens(content: str) -> str:
     return _unescape_destination(content)
 
 
+def _has_multiline_inline_link(text: str) -> bool:
+    """Return whether an inline link spans lines and cannot be parsed here."""
+    index = 0
+    while index < len(text):
+        start = text.find("[", index)
+        if start < 0:
+            return False
+        if _is_escaped(text, start):
+            index = start + 1
+            continue
+        close_bracket = _matching_bracket(text, start)
+        if close_bracket is None:
+            index = start + 1
+            continue
+        open_paren = close_bracket + 1
+        if open_paren < len(text) and text[open_paren] == "(":
+            close_paren = _matching_paren(text, open_paren)
+            if close_paren is None:
+                if "\n" in text[open_paren:] or "\r" in text[open_paren:]:
+                    return True
+            elif "\n" in text[start:close_paren + 1] or "\r" in text[start:close_paren + 1]:
+                return True
+        index = close_bracket + 1
+    return False
+
+
 def extract_links(text: str) -> Tuple[List[Link], List[str]]:
     """Extract supported inline/reference links and parser limitations."""
     masked = _mask_inline_code(_mask_html_comments(_mask_fenced_code(text)))
     references, searchable = _definition_map(masked)
     links: List[Link] = []
     limitations: List[str] = []
-    if re.search(r"\]\(\s*[\r\n]|\]\s*\[\s*[\r\n]", searchable):
-        limitations.append("Multiline Markdown link destinations are not inspected.")
+    if _has_multiline_inline_link(searchable):
+        limitations.append("Multiline Markdown links are not inspected.")
     if re.search(r"(?m)^ {0,3}\[[^\]\r\n]+\]:[ \t]*\r?\n[ \t]+", searchable):
         limitations.append("Multiline Markdown reference definitions are not inspected.")
 
@@ -297,6 +323,8 @@ def extract_links(text: str) -> Tuple[List[Link], List[str]]:
                     destination = references.get(_reference_key(reference))
                     if destination is not None:
                         links.append(Link(destination, line_number, "reference"))
+                    else:
+                        links.append(Link(reference, line_number, "undefined-reference"))
                     index = ref_close + 1
                     continue
             destination = references.get(_reference_key(label))
@@ -444,17 +472,6 @@ def check_repository(root: Path) -> Dict[str, object]:
         texts[relative] = text
         headings_by_path[relative] = heading_anchors(text)
         limitations.update(headings_by_path[relative][2])
-        for anchor, line_numbers in headings_by_path[relative][1].items():
-            for line_number in line_numbers:
-                findings.append(
-                    Finding(
-                        "duplicate-heading",
-                        relative,
-                        line_number,
-                        "Heading creates a duplicate anchor '{}'. GitHub-style links use a numeric suffix.".format(anchor),
-                    )
-                )
-
     links_checked = 0
     external_links_skipped = 0
     for path in files:
@@ -462,6 +479,16 @@ def check_repository(root: Path) -> Dict[str, object]:
         links, link_limitations = extract_links(texts[source_relative])
         limitations.update(link_limitations)
         for link in links:
+            if link.syntax == "undefined-reference":
+                findings.append(
+                    Finding(
+                        "undefined-reference",
+                        source_relative,
+                        link.line,
+                        "Reference link label '{}' has no matching definition.".format(link.destination),
+                    )
+                )
+                continue
             destination = link.destination.strip()
             if not destination:
                 findings.append(
